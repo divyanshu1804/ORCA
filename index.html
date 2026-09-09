@@ -161,7 +161,32 @@
     border:1px solid var(--line);
     border-radius:var(--radius);
     padding:26px;
+    overflow:visible;
+  }
+
+  /* Mermaid diagram viewport:
+     keeps the console from vertically clipping large diagrams while
+     allowing wide diagrams to scroll horizontally when necessary. */
+  .diagram-scroll{
+    width:100%;
     overflow-x:auto;
+    overflow-y:visible;
+    padding:10px 0;
+    scrollbar-width:thin;
+  }
+
+  .diagram-scroll .mermaid{
+    min-width:900px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    overflow:visible;
+  }
+
+  .diagram-scroll .mermaid svg{
+    display:block;
+    height:auto;
+    max-width:none;
   }
   .console::before, .console::after{
     content:""; position:absolute; width:14px; height:14px;
@@ -233,6 +258,10 @@
   }
 
   @media (max-width:900px){
+    .diagram-scroll .mermaid{
+      min-width:760px;
+    }
+
     .shell{ grid-template-columns:1fr; }
     nav.toc{ position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); }
     .hero, section{ padding:36px 22px; }
@@ -295,44 +324,46 @@
       </p>
       <div class="console">
         <span class="console-tag">fig 01 · high-level flow</span>
-        <div class="mermaid">
-flowchart TD
-    U["User / Field Researcher"]
-    FE["Web &amp; Mobile Client"]
-    GW["Flask API Gateway"]
-    ORCH["LangGraph Orchestrator"]
-    RTR{"Router &amp; Planner Agent"}
-    WA["Weather Agent"]
-    OA["Ocean Data Agent"]
-    GA["Geospatial Agent"]
-    KA["Knowledge &amp; RAG Agent"]
-    EXT1[("IMD Weather API")]
-    EXT2[("INCOIS Buoy &amp; Satellite Data")]
-    EXT3[("Bhuvan GIS Services")]
-    VDB[("Vector Store")]
-    AGG["Synthesis &amp; Reasoning Agent"]
-    RESP["Response Generator"]
-
-    U -->|"natural language query"| FE
-    FE -->|"REST call"| GW
-    GW --> ORCH
-    ORCH --> RTR
-    RTR --> WA
-    RTR --> OA
-    RTR --> GA
-    RTR --> KA
-    WA --> EXT1
-    OA --> EXT2
-    GA --> EXT3
-    KA --> VDB
-    WA --> AGG
-    OA --> AGG
-    GA --> AGG
-    KA --> AGG
-    AGG --> RESP
-    RESP --> GW
-    GW --> FE
-    FE --> U
+        <div class="diagram-scroll">
+          <div class="mermaid">
+          flowchart TD
+              U["User / Field Researcher"]
+              FE["Web &amp; Mobile Client"]
+              GW["Flask API Gateway"]
+              ORCH["LangGraph Orchestrator"]
+              RTR{"Router &amp; Planner Agent"}
+              WA["Weather Agent"]
+              OA["Ocean Data Agent"]
+              GA["Geospatial Agent"]
+              KA["Knowledge &amp; RAG Agent"]
+              EXT1[("IMD Weather API")]
+              EXT2[("INCOIS Buoy &amp; Satellite Data")]
+              EXT3[("Bhuvan GIS Services")]
+              VDB[("Vector Store")]
+              AGG["Synthesis &amp; Reasoning Agent"]
+              RESP["Response Generator"]
+          
+              U -->|"natural language query"| FE
+              FE -->|"REST call"| GW
+              GW --> ORCH
+              ORCH --> RTR
+              RTR --> WA
+              RTR --> OA
+              RTR --> GA
+              RTR --> KA
+              WA --> EXT1
+              OA --> EXT2
+              GA --> EXT3
+              KA --> VDB
+              WA --> AGG
+              OA --> AGG
+              GA --> AGG
+              KA --> AGG
+              AGG --> RESP
+              RESP --> GW
+              GW --> FE
+              FE --> U
+                  </div>
         </div>
       </div>
     </section>
@@ -347,25 +378,27 @@ flowchart TD
       </p>
       <div class="console">
         <span class="console-tag">fig 02 · state graph</span>
-        <div class="mermaid">
-stateDiagram-v2
-    [*] --> QueryIntake
-    QueryIntake --> IntentClassification
-    IntentClassification --> Planning
-    Planning --> ToolRouting
-    ToolRouting --> WeatherAgent : needs weather
-    ToolRouting --> OceanAgent : needs ocean data
-    ToolRouting --> GeoAgent : needs geospatial
-    ToolRouting --> RAGAgent : needs knowledge base
-    WeatherAgent --> Aggregation
-    OceanAgent --> Aggregation
-    GeoAgent --> Aggregation
-    RAGAgent --> Aggregation
-    Aggregation --> SufficiencyCheck
-    SufficiencyCheck --> ToolRouting : insufficient, replan
-    SufficiencyCheck --> ResponseSynthesis : sufficient
-    ResponseSynthesis --> CitationCheck
-    CitationCheck --> [*]
+        <div class="diagram-scroll">
+          <div class="mermaid">
+          stateDiagram-v2
+              [*] --> QueryIntake
+              QueryIntake --> IntentClassification
+              IntentClassification --> Planning
+              Planning --> ToolRouting
+              ToolRouting --> WeatherAgent : needs weather
+              ToolRouting --> OceanAgent : needs ocean data
+              ToolRouting --> GeoAgent : needs geospatial
+              ToolRouting --> RAGAgent : needs knowledge base
+              WeatherAgent --> Aggregation
+              OceanAgent --> Aggregation
+              GeoAgent --> Aggregation
+              RAGAgent --> Aggregation
+              Aggregation --> SufficiencyCheck
+              SufficiencyCheck --> ToolRouting : insufficient, replan
+              SufficiencyCheck --> ResponseSynthesis : sufficient
+              ResponseSynthesis --> CitationCheck
+              CitationCheck --> [*]
+                  </div>
         </div>
       </div>
     </section>
@@ -460,32 +493,34 @@ stateDiagram-v2
       </p>
       <div class="console">
         <span class="console-tag">fig 04 · sequence diagram</span>
-        <div class="mermaid">
-sequenceDiagram
-    actor User
-    participant FE as Client App
-    participant API as Flask API
-    participant ORC as LangGraph Orchestrator
-    participant AG as Specialized Agent
-    participant EXT as External API / DB
-    participant LLM as LLM Reasoning Core
-
-    User->>FE: Ask marine ecosystem question
-    FE->>API: POST /query
-    API->>ORC: invoke(state)
-    ORC->>LLM: classify intent + plan
-    LLM-->>ORC: plan (agents to call)
-    loop for each required agent
-        ORC->>AG: tool call
-        AG->>EXT: fetch data
-        EXT-->>AG: raw data
-        AG-->>ORC: structured result
-    end
-    ORC->>LLM: synthesize evidence-based answer
-    LLM-->>ORC: draft response + citations
-    ORC->>API: final response
-    API-->>FE: JSON answer
-    FE-->>User: rendered answer with sources
+        <div class="diagram-scroll">
+          <div class="mermaid">
+          sequenceDiagram
+              actor User
+              participant FE as Client App
+              participant API as Flask API
+              participant ORC as LangGraph Orchestrator
+              participant AG as Specialized Agent
+              participant EXT as External API / DB
+              participant LLM as LLM Reasoning Core
+          
+              User->>FE: Ask marine ecosystem question
+              FE->>API: POST /query
+              API->>ORC: invoke(state)
+              ORC->>LLM: classify intent + plan
+              LLM-->>ORC: plan (agents to call)
+              loop for each required agent
+                  ORC->>AG: tool call
+                  AG->>EXT: fetch data
+                  EXT-->>AG: raw data
+                  AG-->>ORC: structured result
+              end
+              ORC->>LLM: synthesize evidence-based answer
+              LLM-->>ORC: draft response + citations
+              ORC->>API: final response
+              API-->>FE: JSON answer
+              FE-->>User: rendered answer with sources
+                  </div>
         </div>
       </div>
     </section>
@@ -499,22 +534,24 @@ sequenceDiagram
       </p>
       <div class="console">
         <span class="console-tag">fig 05 · ingestion flow</span>
-        <div class="mermaid">
-flowchart LR
-    subgraph Sources["External Data Sources"]
-        S1["INCOIS Ocean Data"]
-        S2["IMD Weather Data"]
-        S3["ISRO Satellite / Bhuvan"]
-        S4["Research Papers &amp; Reports"]
-    end
-    Sources --> ETL["Ingestion &amp; Cleaning Service"]
-    ETL --> EMB["Embedding Pipeline"]
-    EMB --> VDB[("Vector Database")]
-    ETL --> SQL[("PostgreSQL — structured records")]
-    ETL --> CACHE[("Redis Cache")]
-    VDB --> KA["Knowledge / RAG Agent"]
-    SQL --> OA["Ocean Data Agent"]
-    CACHE --> ORCH["Orchestrator"]
+        <div class="diagram-scroll">
+          <div class="mermaid">
+          flowchart LR
+              subgraph Sources["External Data Sources"]
+                  S1["INCOIS Ocean Data"]
+                  S2["IMD Weather Data"]
+                  S3["ISRO Satellite / Bhuvan"]
+                  S4["Research Papers &amp; Reports"]
+              end
+              Sources --> ETL["Ingestion &amp; Cleaning Service"]
+              ETL --> EMB["Embedding Pipeline"]
+              EMB --> VDB[("Vector Database")]
+              ETL --> SQL[("PostgreSQL — structured records")]
+              ETL --> CACHE[("Redis Cache")]
+              VDB --> KA["Knowledge / RAG Agent"]
+              SQL --> OA["Ocean Data Agent"]
+              CACHE --> ORCH["Orchestrator"]
+                  </div>
         </div>
       </div>
     </section>
@@ -550,39 +587,41 @@ flowchart LR
       </p>
       <div class="console">
         <span class="console-tag">fig 07 · component / deployment diagram</span>
-        <div class="mermaid">
-flowchart TB
-    subgraph ClientLayer["Client Layer"]
-        WEB["Web App"]
-        MOB["Mobile App"]
-    end
-    subgraph BackendLayer["Backend — Flask"]
-        API["REST API"]
-        AUTH["Auth Middleware"]
-    end
-    subgraph AgentLayer["Agent Layer — LangGraph"]
-        ORCH2["Orchestrator Graph"]
-        AGENTS["Specialized Agent Nodes"]
-    end
-    subgraph DataLayer["Data Layer"]
-        REDIS[("Redis")]
-        PG[("PostgreSQL")]
-        VEC[("Vector DB")]
-    end
-    subgraph ExternalLayer["External Services"]
-        LLMAPI["LLM Provider API"]
-        GOVAPI["Ocean &amp; Weather Data APIs"]
-    end
-
-    WEB --> API
-    MOB --> API
-    API --> AUTH --> ORCH2
-    ORCH2 --> AGENTS
-    AGENTS --> REDIS
-    AGENTS --> PG
-    AGENTS --> VEC
-    AGENTS --> LLMAPI
-    AGENTS --> GOVAPI
+        <div class="diagram-scroll">
+          <div class="mermaid">
+          flowchart TB
+              subgraph ClientLayer["Client Layer"]
+                  WEB["Web App"]
+                  MOB["Mobile App"]
+              end
+              subgraph BackendLayer["Backend — Flask"]
+                  API["REST API"]
+                  AUTH["Auth Middleware"]
+              end
+              subgraph AgentLayer["Agent Layer — LangGraph"]
+                  ORCH2["Orchestrator Graph"]
+                  AGENTS["Specialized Agent Nodes"]
+              end
+              subgraph DataLayer["Data Layer"]
+                  REDIS[("Redis")]
+                  PG[("PostgreSQL")]
+                  VEC[("Vector DB")]
+              end
+              subgraph ExternalLayer["External Services"]
+                  LLMAPI["LLM Provider API"]
+                  GOVAPI["Ocean &amp; Weather Data APIs"]
+              end
+          
+              WEB --> API
+              MOB --> API
+              API --> AUTH --> ORCH2
+              ORCH2 --> AGENTS
+              AGENTS --> REDIS
+              AGENTS --> PG
+              AGENTS --> VEC
+              AGENTS --> LLMAPI
+              AGENTS --> GOVAPI
+                  </div>
         </div>
       </div>
     </section>
@@ -597,14 +636,16 @@ flowchart TB
       </p>
       <div class="console">
         <span class="console-tag">fig 08 · reliability flow</span>
-        <div class="mermaid">
-flowchart LR
-    RESP["Draft Response"] --> GC["Grounding / Citation Check"]
-    GC -->|"fail"| REPLAN["Trigger Replan"]
-    REPLAN --> ORCH3["Orchestrator"]
-    GC -->|"pass"| SAFE["Confidence Filter"]
-    SAFE -->|"low confidence"| HUMAN["Flag for Human Review"]
-    SAFE -->|"pass"| FINAL["Final Answer to User"]
+        <div class="diagram-scroll">
+          <div class="mermaid">
+          flowchart LR
+              RESP["Draft Response"] --> GC["Grounding / Citation Check"]
+              GC -->|"fail"| REPLAN["Trigger Replan"]
+              REPLAN --> ORCH3["Orchestrator"]
+              GC -->|"pass"| SAFE["Confidence Filter"]
+              SAFE -->|"low confidence"| HUMAN["Flag for Human Review"]
+              SAFE -->|"pass"| FINAL["Final Answer to User"]
+                  </div>
         </div>
       </div>
     </section>
